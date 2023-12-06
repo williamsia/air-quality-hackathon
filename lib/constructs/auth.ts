@@ -2,7 +2,7 @@ import { Construct } from "constructs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as cdk from "aws-cdk-lib";
 
-const ADMIN_USER_EMAIL = 'rotach+airquality@amazon.com';
+const ADMIN_USER_EMAIL = 'ADMIN USER EMAIL GOES HERE';
 
 export class Auth extends Construct {
   readonly userPool: cognito.IUserPool;
