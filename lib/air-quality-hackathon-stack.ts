@@ -11,6 +11,12 @@ export class AirQualityHackathonStack extends cdk.Stack {
     const api = new CognitoRestApi(this, `CognitoRestApi`, {
       cognitoUserPool: auth.userPool,
     });
+    new cdk.CfnOutput(this, `UserPoolId`, {
+      value: auth.userPool.userPoolId,
+    });
 
+    new cdk.CfnOutput(this, `UserPoolWebClientId`, {
+      value: auth.userPoolClient.userPoolClientId,
+    });
   }
 }

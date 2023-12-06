@@ -19,7 +19,7 @@ export class CognitoRestApi extends Construct {
     super(scope, id);
 
     const apiHandler = new NodejsFunctionWithRole(this, "ApiHandler", {
-      entry: path.join(__dirname, "../src/apiHandler/index.ts"),
+      entry: path.join(__dirname, "../../src/apiHandler/index.ts"),
       environment: {
       }
     });
