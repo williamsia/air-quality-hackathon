@@ -10,6 +10,9 @@ importers:
 
   ../../packages/apps/api:
     dependencies:
+      '@aws-cdk/aws-lambda-python-alpha':
+        specifier: ~2.114.1-alpha.0
+        version: 2.114.1-alpha.0(aws-cdk-lib@2.114.1)(constructs@10.0.0)
       '@aws-sdk/client-cognito-identity-provider':
         specifier: 3.441.0
         version: 3.441.0
@@ -300,6 +303,9 @@ importers:
       '@aws-amplify/auth':
         specifier: 5.5.4
         version: 5.5.4(react-native@0.73.0)
+      '@aws-cdk/aws-lambda-python-alpha':
+        specifier: ~2.114.1-alpha.0
+        version: 2.114.1-alpha.0(aws-cdk-lib@2.114.1)(constructs@10.0.0)
       aws-cdk-lib:
         specifier: 2.114.1
         version: 2.114.1(constructs@10.0.0)
@@ -683,6 +689,17 @@ packages:
 
   /@aws-cdk/asset-node-proxy-agent-v6@2.0.1:
     resolution: {integrity: sha512-DDt4SLdLOwWCjGtltH4VCST7hpOI5DzieuhGZsBpZ+AgJdSI2GCjklCXm0GCTwJG/SolkL5dtQXyUKgg9luBDg==}
+    dev: false
+
+  /@aws-cdk/aws-lambda-python-alpha@2.114.1-alpha.0(aws-cdk-lib@2.114.1)(constructs@10.0.0):
+    resolution: {integrity: sha512-ozpcGNBrNjfrEOkTC8gpTJu9g1PCKV62NNGV3kE3hOkqjphss9ytwKjIfUIvS+yjqy8D8/BHM0btJKrNur0RoQ==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      aws-cdk-lib: ^2.114.1
+      constructs: ^10.0.0
+    dependencies:
+      aws-cdk-lib: 2.114.1(constructs@10.0.0)
+      constructs: 10.0.0
     dev: false
 
   /@aws-crypto/crc32@1.2.2:

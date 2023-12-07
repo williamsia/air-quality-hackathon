@@ -11,33 +11,33 @@
  *  and limitations under the License.
  */
 
-import type {FastifyEnvOptions} from '@fastify/env';
+import type { FastifyEnvOptions } from '@fastify/env';
 import fastifyEnv from '@fastify/env';
-import {Static, Type} from '@sinclair/typebox';
+import { Static, Type } from '@sinclair/typebox';
 import fp from 'fastify-plugin';
 
 export const configSchema = Type.Object({
-    PORT: Type.Number({default: 30001}),
-    AWS_REGION: Type.String(),
-    LOG_LEVEL: Type.String({default: 'info'}),
-    NODE_ENV: Type.String(),
-    TABLE_NAME: Type.String(),
+	PORT: Type.Number({default: 30001}),
+	AWS_REGION: Type.String(),
+	LOG_LEVEL: Type.String({default: 'info'}),
+	NODE_ENV: Type.String(),
+	FEED_BUCKET: Type.String(),
 });
 
 export type ConfigSchemaType = Static<typeof configSchema>;
 
 export default fp<FastifyEnvOptions>(async (app): Promise<void> => {
-    await app.register(fastifyEnv, {
-        confKey: 'config',
-        // schema: convertFromTypeBoxIntersectToJSONSchema(configSchema),
-        schema: configSchema,
-        dotenv: true
-    });
-    app.log.info(`config: ${JSON.stringify(app.config)}`);
+	await app.register(fastifyEnv, {
+		confKey: 'config',
+		// schema: convertFromTypeBoxIntersectToJSONSchema(configSchema),
+		schema: configSchema,
+		dotenv: true
+	});
+	app.log.info(`config: ${JSON.stringify(app.config)}`);
 });
 
 declare module 'fastify' {
-    interface FastifyInstance {
-        config: ConfigSchemaType;
-    }
+	interface FastifyInstance {
+		config: ConfigSchemaType;
+	}
 }

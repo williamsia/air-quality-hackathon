@@ -13,69 +13,74 @@
 
 import cors from '@fastify/cors';
 import fastifySensible from '@fastify/sensible';
-import type {TypeBoxTypeProvider} from '@fastify/type-provider-typebox';
-import type {FastifyInstance} from 'fastify';
-import {fastify} from 'fastify';
+import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import type { FastifyInstance } from 'fastify';
+import { fastify } from 'fastify';
 import config from './plugins/config.js';
 import moduleAwilix from './plugins/module.awilix.js';
 import swagger from './plugins/swagger.js';
-import {handleError} from './common/errors.js';
-import {SecurityContext} from "./common/scopes.js";
+import { handleError } from './common/errors.js';
+import { SecurityContext } from "./common/scopes.js";
+import postSensorFeedRoute from "./feeds/post.handler.js";
+import { feedUploadResource, newFeedResource } from "./feeds/schemas.js";
 
 export const buildApp = async (): Promise<FastifyInstance> => {
-    const environment = process.env['NODE_ENV'] as string;
-    const logLevel = process.env['LOG_LEVEL'] as string;
-    const envToLogger = {
-        local: {
-            level: logLevel ?? 'debug',
-            transport: {
-                target: 'pino-pretty',
-                options: {
-                    translateTime: 'HH:MM:ss Z',
-                    ignore: 'pid,hostname'
-                }
-            }
-        },
-        prod: {
-            level: logLevel ?? 'warn'
-        }
-    };
+	const environment = process.env['NODE_ENV'] as string;
+	const logLevel = process.env['LOG_LEVEL'] as string;
+	const envToLogger = {
+		local: {
+			level: logLevel ?? 'debug',
+			transport: {
+				target: 'pino-pretty',
+				options: {
+					translateTime: 'HH:MM:ss Z',
+					ignore: 'pid,hostname'
+				}
+			}
+		},
+		prod: {
+			level: logLevel ?? 'warn'
+		}
+	};
 
-    const app = fastify({
-        logger: envToLogger[environment] ?? {
-            level: logLevel ?? 'info'
-        },
-        ajv: {
-            customOptions: {
-                strict: 'log',
-                keywords: ['kind', 'modifier']
-            },
-            plugins: [
-                // eslint-disable-next-line @typescript-eslint/typedef
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                function (ajv: any) {
-                    ajv.addKeyword({keyword: 'x-examples'});
-                }
-            ]
-        }
-    }).withTypeProvider<TypeBoxTypeProvider>();
+	const app = fastify({
+		logger: envToLogger[environment] ?? {
+			level: logLevel ?? 'info'
+		},
+		ajv: {
+			customOptions: {
+				strict: 'log',
+				keywords: ['kind', 'modifier']
+			},
+			plugins: [
+				// eslint-disable-next-line @typescript-eslint/typedef
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				function (ajv: any) {
+					ajv.addKeyword({keyword: 'x-examples'});
+				}
+			]
+		}
+	}).withTypeProvider<TypeBoxTypeProvider>();
 
-    app.setErrorHandler(handleError);
+	app.setErrorHandler(handleError);
 
-    // register all plugins
-    await app.register(config);
-    await app.register(swagger);
-    await app.register(cors, {});
-    await app.register(moduleAwilix);
-    await app.register(fastifySensible);
+	// register all plugins
+	await app.register(config);
+	await app.register(swagger);
+	await app.register(cors, {});
+	await app.register(moduleAwilix);
+	await app.register(fastifySensible);
 
+	app.addSchema(feedUploadResource);
+	app.addSchema(newFeedResource);
+	await app.register(postSensorFeedRoute);
 
-    return app as unknown as FastifyInstance;
+	return app as unknown as FastifyInstance;
 };
 
 // helper declaration merging
 declare module 'fastify' {
-    interface FastifyRequest {
-        authz: SecurityContext;
-    }
+	interface FastifyRequest {
+		authz: SecurityContext;
+	}
 }

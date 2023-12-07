@@ -65,7 +65,7 @@ await Promise.all([
 	getValues('shared', {
 		VITE_USER_POOL_ID: 'userPoolId'
 	}),
-	getValues('frontend', {
+	getValues('frontEnd', {
 		VITE_USER_POOL_CLIENT_ID: 'userPoolClientId'
 	}),
 	getValues('shared', {
