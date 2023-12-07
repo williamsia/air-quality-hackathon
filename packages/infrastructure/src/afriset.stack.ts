@@ -4,6 +4,7 @@ import { ApiConstruct } from "./api.construct.js";
 import { Auth } from "./auth.construct.js";
 import { FrontEnd } from "./frontend.construct.js";
 import { FeedMapping } from "./feedMapping.construct.js";
+import { Notification } from "./notification.js";
 
 export interface AfrisetProperties {
 	environment: string;
@@ -21,10 +22,9 @@ export class AfrisetStack extends Stack {
 			redirectUrls: props.redirectUrls
 		})
 
-		new FeedMapping(this, 'FeedMapping', {
-				environment: props.environment
-			}
-		)
+		new Notification(this, 'Notification', {environment: props.environment});
+
+		new FeedMapping(this, 'FeedMapping', {environment: props.environment})
 
 		new FrontEnd(this, 'FrontEnd', {
 			environment: props.environment,

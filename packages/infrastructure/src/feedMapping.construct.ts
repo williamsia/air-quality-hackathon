@@ -4,6 +4,7 @@ import { DefinitionBody, LogLevel, StateMachine } from "aws-cdk-lib/aws-stepfunc
 import { Construct } from "constructs";
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { CfnDatabase, CfnTable } from "aws-cdk-lib/aws-timestream";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -21,12 +22,23 @@ export class FeedMapping extends Construct {
 
 		const namePrefix = `afriset-${props.environment}`;
 
+		const feedDatabase = new CfnDatabase(this, 'SensorDatabase', {
+			databaseName: namePrefix
+		})
+
+		const feedTable = new CfnTable(this, 'SensorFeeds', {
+			databaseName: feedDatabase.databaseName!,
+			tableName: `${namePrefix}-sensor-feeds`
+		})
+
+		feedTable.node.addDependency(feedDatabase);
+
 		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
 
 		const feedMapping = new PythonFunction(this, 'FeedMappingFunction', {
 			entry: path.join(__dirname, '../../../python/feedMapping'), // required
 			runtime: Runtime.PYTHON_3_8, // required
-			handler: 'lambda_handler', // optional, defaults to 'handler'
+			handler: 'lambda_handler', // optional, defaults to 'handler',
 		});
 
 		const feedMappingTask = new LambdaInvoke(this, 'FeedMapping', {
