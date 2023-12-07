@@ -25,11 +25,9 @@ export const configSchema = Type.Object({
 });
 
 export type ConfigSchemaType = Static<typeof configSchema>;
-
 export default fp<FastifyEnvOptions>(async (app): Promise<void> => {
 	await app.register(fastifyEnv, {
 		confKey: 'config',
-		// schema: convertFromTypeBoxIntersectToJSONSchema(configSchema),
 		schema: configSchema,
 		dotenv: true
 	});

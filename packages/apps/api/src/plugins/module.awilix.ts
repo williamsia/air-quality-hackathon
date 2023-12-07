@@ -14,32 +14,24 @@
 import { asFunction, Lifetime } from 'awilix';
 import fp from 'fastify-plugin';
 
-import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
 import { Cradle, diContainer, FastifyAwilixOptions, fastifyAwilixPlugin } from '@fastify/awilix';
-import { AthenaClient } from '@aws-sdk/client-athena';
-import { STSClient } from '@aws-sdk/client-sts';
 import { DynamoDBDocumentClient, TranslateConfig } from '@aws-sdk/lib-dynamodb';
 import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { GlueClient } from '@aws-sdk/client-glue';
 import pkg from 'aws-xray-sdk';
 import { S3Client } from '@aws-sdk/client-s3';
-import { PricingClient } from '@aws-sdk/client-pricing';
-import { OrganizationsClient } from '@aws-sdk/client-organizations';
 import { FeedService } from "../feeds/service.js";
+import { TimestreamWriteClient } from '@aws-sdk/client-timestream-write';
+import { LambdaClient } from '@aws-sdk/client-lambda';
 
 const {captureAWSv3Client} = pkg;
 
 declare module '@fastify/awilix' {
 	interface Cradle {
-		cognitoIdentityProviderClient: CognitoIdentityProviderClient;
-		athenaClient: AthenaClient;
 		dynamoDBDocumentClient: DynamoDBDocumentClient;
 		s3Client: S3Client;
-		glueClient: GlueClient;
-		stsClient: STSClient;
-		organizationClient: OrganizationsClient;
-		pricingClient: PricingClient;
 		feedService: FeedService;
+		timestreamWriteClient: TimestreamWriteClient;
+		lambdaClient: LambdaClient;
 	}
 }
 
@@ -53,47 +45,22 @@ class S3ClientFactory {
 
 }
 
-class GlueClientFactory {
-	public static create(region: string): GlueClient {
-		const glue = captureAWSv3Client(new GlueClient({
+class LambdaClientFactory {
+	public static create(region: string): LambdaClient {
+		const lambda = captureAWSv3Client(new LambdaClient({
 			region
 		}));
-		return glue;
+		return lambda;
 	}
-
 }
 
-class STSClientFactory {
-	public static create(region: string): STSClient {
-		const sts = captureAWSv3Client(new STSClient({
+
+class TimestreamWriteClientFactory {
+	public static create(region: string): TimestreamWriteClient {
+		const timestreamWriteClient = captureAWSv3Client(new TimestreamWriteClient({
 			region
 		}));
-		return sts;
-	}
-
-}
-
-class PricingClientFactory {
-	public static create(): PricingClient {
-		return captureAWSv3Client(new PricingClient({region: 'us-east-1'}));
-	}
-}
-
-class OrganizationsClientFactory {
-	public static create(region: string): OrganizationsClient {
-		return captureAWSv3Client(new OrganizationsClient({region}));
-	}
-}
-
-class CognitoIdentityProviderClientFactory {
-	public static create(region: string): CognitoIdentityProviderClient {
-		return new CognitoIdentityProviderClient({region});
-	}
-}
-
-class AthenaClientFactory {
-	public static create(region: string): AthenaClient {
-		return new AthenaClient({region});
+		return timestreamWriteClient;
 	}
 }
 
@@ -129,30 +96,21 @@ export default fp<FastifyAwilixOptions>(async (app): Promise<void> => {
 	const awsRegion = process.env['AWS_REGION'];
 	// then we can register our classes with the DI container
 	diContainer.register({
-		cognitoIdentityProviderClient: asFunction(() => CognitoIdentityProviderClientFactory.create(app.config.AWS_REGION), {
-			...commonInjectionOptions
-		}),
-		athenaClient: asFunction(() => AthenaClientFactory.create(awsRegion), {
-			...commonInjectionOptions
-		}),
 		dynamoDBDocumentClient: asFunction(() => DynamoDBDocumentClientFactory.create(awsRegion), {
 			...commonInjectionOptions
 		}),
-		s3Client: asFunction(() => S3ClientFactory.create(app.config.AWS_REGION), {
+		s3Client: asFunction(() => S3ClientFactory.create(awsRegion), {
 			...commonInjectionOptions
 		}),
-		pricingClient: asFunction(() => PricingClientFactory.create(), {
+
+		lambdaClient: asFunction(() => LambdaClientFactory.create(awsRegion), {
 			...commonInjectionOptions
 		}),
-		organizationClient: asFunction(() => OrganizationsClientFactory.create(app.config.AWS_REGION), {
+
+		timestreamWriteClient: asFunction(() => TimestreamWriteClientFactory.create(awsRegion), {
 			...commonInjectionOptions
 		}),
-		glueClient: asFunction(() => GlueClientFactory.create(app.config.AWS_REGION), {
-			...commonInjectionOptions
-		}),
-		stsClient: asFunction(() => STSClientFactory.create(app.config.AWS_REGION), {
-			...commonInjectionOptions
-		}),
+
 		feedService: asFunction((container: Cradle) => new FeedService(app.log, container.s3Client, app.config.FEED_BUCKET), {
 			...commonInjectionOptions
 		})
