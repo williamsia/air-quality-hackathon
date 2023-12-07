@@ -48,7 +48,7 @@ const soseConfiguration = {
 
 const getValues = async (module, mapping) => {
 	for (const key in mapping) {
-		const prefix = `/afriSET/${ENVIRONMENT}/${module}/`;
+		const prefix = `/afriset/${ENVIRONMENT}/${module}/`;
 		const name = `${prefix}${mapping[key]}`;
 		try {
 			const response = await ssmClient.send(new GetParameterCommand({
@@ -65,7 +65,7 @@ await Promise.all([
 	getValues('shared', {
 		VITE_USER_POOL_ID: 'userPoolId'
 	}),
-	getValues('shared', {
+	getValues('frontend', {
 		VITE_USER_POOL_CLIENT_ID: 'userPoolClientId'
 	}),
 	getValues('shared', {

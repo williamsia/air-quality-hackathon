@@ -16,22 +16,21 @@ interface CognitoRestApiProps {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-export const afriSETApiUrlParameter = (environment: string) => `/afriSET/${environment}/shared/apiUrl`;
-export const afriSETApiNameParameter = (environment: string) => `/afriSET/${environment}/shared/apiName`;
+export const afrisetApiUrlParameter = (environment: string) => `/afriset/${environment}/shared/apiUrl`;
+export const afrisetApiNameParameter = (environment: string) => `/afriset/${environment}/shared/apiName`;
 
 
 export class ApiConstruct extends Construct {
 	readonly api: IRestApi;
-	readonly cognitoAuthorizer: CognitoUserPoolsAuthorizer;
 
 	constructor(scope: Construct, id: string, props: CognitoRestApiProps) {
 		super(scope, id);
 
-		const namePrefix = `afriSET-${props.environment}`;
+		const namePrefix = `afriset-${props.environment}`;
 
 		const apiLambda = new NodejsFunction(this, 'ApiLambda', {
 			functionName: `${namePrefix}-api`,
-			description: `AfriSET API (${props.environment})`,
+			description: `Afriset API (${props.environment})`,
 			entry: path.join(__dirname, '../../apps/api/src/lambda_apiGateway.ts'),
 			runtime: Runtime.NODEJS_18_X,
 			tracing: Tracing.ACTIVE,
@@ -58,10 +57,10 @@ export class ApiConstruct extends Construct {
 			cognitoUserPools: [props.userPool]
 		});
 
-		const logGroup = new LogGroup(this, 'AfriSETApiLogs');
+		const logGroup = new LogGroup(this, 'AfriSetApiLogs');
 		const apigw = new LambdaRestApi(this, 'ApiGateway', {
 			restApiName: `${namePrefix}-api`,
-			description: `AfriSET API`,
+			description: `AfriSet API`,
 			handler: apiLambda,
 			proxy: true,
 			cloudWatchRole: true,
@@ -92,13 +91,13 @@ export class ApiConstruct extends Construct {
 
 		apigw.node.addDependency(apiLambda);
 
-		new StringParameter(this, 'afriSETApiUrlParameter', {
-			parameterName: afriSETApiUrlParameter(props.environment),
+		new StringParameter(this, 'afrisetApiUrlParameter', {
+			parameterName: afrisetApiUrlParameter(props.environment),
 			stringValue: apigw.url
 		});
 
-		new StringParameter(this, 'afriSETApiNameParameter', {
-			parameterName: afriSETApiNameParameter(props.environment),
+		new StringParameter(this, 'afrisetApiNameParameter', {
+			parameterName: afrisetApiNameParameter(props.environment),
 			stringValue: apigw.restApiName
 		});
 	}

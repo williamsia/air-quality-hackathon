@@ -2,20 +2,28 @@ import { Stack, StackProps } from "aws-cdk-lib";
 import type { Construct } from "constructs";
 import { ApiConstruct } from "./api.construct.js";
 import { Auth } from "./auth.construct.js";
+import { FrontEnd } from "./frontend.construct.js";
 
-export interface AfriSetProperties {
+export interface AfrisetProperties {
 	environment: string;
 	administratorEmail: string;
-	redirectUrls: string;
+	redirectUrls: string[];
 }
 
-export class AfriSetStack extends Stack {
-	constructor(scope: Construct, id: string, props: AfriSetProperties & StackProps) {
+export class AfrisetStack extends Stack {
+	constructor(scope: Construct, id: string, props: AfrisetProperties & StackProps) {
 		super(scope, id, props);
 
 		const auth = new Auth(this, 'Auth', {
-			environment: props.environment, administratorEmail: props.administratorEmail,
+			environment: props.environment,
+			administratorEmail: props.administratorEmail,
 			redirectUrls: props.redirectUrls
+		})
+
+		new FrontEnd(this, 'FrontEnd', {
+			environment: props.environment,
+			redirectUrls: props.redirectUrls,
+			cognitoUserPoolId: auth.userPool.userPoolId
 		})
 
 		new ApiConstruct(this, 'API', {

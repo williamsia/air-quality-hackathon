@@ -1,19 +1,19 @@
 import { Construct } from "constructs";
 import * as cognito from "aws-cdk-lib/aws-cognito";
-import * as cdk from "aws-cdk-lib";
 import { CfnUserPoolGroup, CfnUserPoolUser, CfnUserPoolUserToGroupAttachment, ClientAttributes, StandardAttributesMask, StringAttribute, UserPoolClient, UserPoolClientIdentityProvider, UserPoolDomain } from "aws-cdk-lib/aws-cognito";
+import * as cdk from "aws-cdk-lib";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 
 export interface AuthProperties {
 	environment: string;
 	administratorEmail: string;
-	redirectUrls: string;
+	redirectUrls: string[];
 }
 
-export const userPoolIdParameter = (environment: string) => `/afriSET/${environment}/shared/userPoolId`;
-export const userPoolArnParameter = (environment: string) => `/afriSET/${environment}/shared/userPoolArn`;
-export const userPoolClientIdParameter = (environment: string) => `/afriSET/${environment}/shared/userPoolClientId`;
-export const adminUserParameter = (environment: string) => `/afriSET/${environment}/shared/adminUser`;
+export const userPoolIdParameter = (environment: string) => `/afriset/${environment}/shared/userPoolId`;
+export const userPoolArnParameter = (environment: string) => `/afriset/${environment}/shared/userPoolArn`;
+export const userPoolClientIdParameter = (environment: string) => `/afriset/${environment}/shared/userPoolClientId`;
+export const adminUserParameter = (environment: string) => `/afriset/${environment}/shared/adminUser`;
 
 export class Auth extends Construct {
 	readonly userPool: cognito.IUserPool;
@@ -22,7 +22,7 @@ export class Auth extends Construct {
 	constructor(scope: Construct, id: string, props: AuthProperties) {
 		super(scope, id);
 
-		const namePrefix = `afriSET-${props.environment}`;
+		const namePrefix = `afriset-${props.environment}`;
 
 		const userPool = new cognito.UserPool(this, "UserPool", {
 			userPoolName: namePrefix,
