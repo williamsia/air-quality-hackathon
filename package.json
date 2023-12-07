@@ -1,29 +1,31 @@
 {
-  "name": "air-quality-hackathon",
-  "version": "0.1.0",
-  "bin": {
-    "air-quality-hackathon": "bin/air-quality-hackathon.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.8",
-    "@types/node": "20.9.1",
-    "jest": "^29.7.0",
-    "ts-jest": "^29.1.1",
-    "aws-cdk": "2.114.1",
-    "ts-node": "^10.9.1",
-    "typescript": "~5.2.2",
-    "path": "^0.12.7",
-    "url": "^0.11.3"
-  },
-  "dependencies": {
-    "aws-cdk-lib": "2.114.1",
-    "constructs": "^10.0.0",
-    "source-map-support": "^0.5.21"
-  }
+	"name": "afriSET",
+	"version": "0.2.0",
+	"description": "Afri SET Hackaton project",
+	"author": "William Sia <willsia@amazon.com>",
+	"scripts": {},
+	"engines": {
+		"node": ">=18.16.0 <19.0.0",
+		"pnpm": "=8.6.8"
+	},
+	"private": true,
+	"devDependencies": {
+		"@commitlint/cli": "^17.7.1",
+		"@commitlint/config-conventional": "^17.7.0",
+		"@rushstack/eslint-config": "^3.3.2",
+		"commitlint": "17.7.1",
+		"esbuild": "0.18.14",
+		"eslint": "8.45.0",
+		"husky": "8.0.3",
+		"vite": "^4.4.4",
+		"path": "^0.12.7",
+		"url": "^0.11.3"
+	},
+	"husky": {
+		"hooks": {
+			"pre-commit": "rush lint",
+			"prepare-commit-msg": "exec < /dev/tty && git cz --hook || true",
+			"commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+		}
+	}
 }

@@ -7,3 +7,13 @@ node_modules
 .cdk.staging
 cdk.out
 __pychache__
+
+.history
+.idea
+.DS_Store
+.rush
+temp
+dist
+*.log
+.env
+.ipynb_checkpoints
