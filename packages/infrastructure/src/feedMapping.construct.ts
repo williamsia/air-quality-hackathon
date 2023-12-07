@@ -3,7 +3,7 @@ import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { DefinitionBody, LogLevel, StateMachine } from "aws-cdk-lib/aws-stepfunctions";
 import { Construct } from "constructs";
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
-import { Runtime } from "aws-cdk-lib/aws-lambda";
+import { DockerImageFunction, DockerImageCode  } from "aws-cdk-lib/aws-lambda";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -35,11 +35,15 @@ export class FeedMapping extends Construct {
 
 		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
 
-		const feedMapping = new PythonFunction(this, 'FeedMappingFunction', {
-			entry: path.join(__dirname, '../../../python/feedMapping'), // required
-			runtime: Runtime.PYTHON_3_8, // required
-			handler: 'lambda_handler', // optional, defaults to 'handler'
-		});
+		// const feedMapping = new PythonFunction(this, 'FeedMappingFunction', {
+		// 	entry: path.join(__dirname, '../../../python/feedMapping'),
+		// 	runtime: Runtime.PYTHON_3_10,
+		// 	handler: 'app.lambda_handler',
+		// });
+
+		const feedMapping = new DockerImageFunction(this, 'AssetFunction', {
+			code: DockerImageCode.fromImageAsset(path.join(__dirname, '../../../python/transformer')),
+		  });
 
 		holdingBucket.grantReadWrite(feedMapping);
 
