@@ -9,3 +9,8 @@ cdk.out
 
 .history
 .idea
+.DS_Store
+.rush
+temp
+dist
+*.log

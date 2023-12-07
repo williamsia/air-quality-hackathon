@@ -1,5 +1,5 @@
 {
-  "name": "air-quality-hackathon",
+  "name": "@afri-set/infrastructure",
   "version": "0.1.0",
   "bin": {
     "air-quality-hackathon": "bin/air-quality-hackathon.js"

@@ -65,13 +65,13 @@ export class StaticSite extends Construct {
           //     },
           //   ],
           // });
-      
+
           const originAccessIdentity = new cloudfront.OriginAccessIdentity(
             this,
             "OriginAccessIdentity"
           );
           hostingBucket.grantRead(originAccessIdentity);
-      
+
           //CloudFrontWebDistribution access log bucket
         //   const cloudFrontWebDistaccessLogsBucket = new s3.Bucket(
         //     this,
@@ -82,7 +82,7 @@ export class StaticSite extends Construct {
         //       enforceSSL: true,
         //     }
         //   );
-      
+
           const distribution = new cloudfront.CloudFrontWebDistribution(
             this,
             "WebsiteDistribution",
@@ -147,7 +147,7 @@ export class StaticSite extends Construct {
             destinationBucket: hostingBucket
           })
 
-      
+
           new cdk.CfnOutput(this, "WebsiteDomain", {
             value: distribution.distributionDomainName,
             description: "Domain for the CloudFront distribution",
