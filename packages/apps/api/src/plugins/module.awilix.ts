@@ -15,7 +15,7 @@ import { asFunction, Lifetime } from 'awilix';
 import fp from 'fastify-plugin';
 
 import { CognitoIdentityProviderClient } from '@aws-sdk/client-cognito-identity-provider';
-import { diContainer, FastifyAwilixOptions, fastifyAwilixPlugin } from '@fastify/awilix';
+import { Cradle, diContainer, FastifyAwilixOptions, fastifyAwilixPlugin } from '@fastify/awilix';
 import { AthenaClient } from '@aws-sdk/client-athena';
 import { STSClient } from '@aws-sdk/client-sts';
 import { DynamoDBDocumentClient, TranslateConfig } from '@aws-sdk/lib-dynamodb';
@@ -25,7 +25,7 @@ import pkg from 'aws-xray-sdk';
 import { S3Client } from '@aws-sdk/client-s3';
 import { PricingClient } from '@aws-sdk/client-pricing';
 import { OrganizationsClient } from '@aws-sdk/client-organizations';
-
+import { FeedService } from "../feeds/service.js";
 
 const {captureAWSv3Client} = pkg;
 
@@ -39,6 +39,7 @@ declare module '@fastify/awilix' {
 		stsClient: STSClient;
 		organizationClient: OrganizationsClient;
 		pricingClient: PricingClient;
+		feedService: FeedService;
 	}
 }
 
@@ -152,5 +153,8 @@ export default fp<FastifyAwilixOptions>(async (app): Promise<void> => {
 		stsClient: asFunction(() => STSClientFactory.create(app.config.AWS_REGION), {
 			...commonInjectionOptions
 		}),
+		feedService: asFunction((container: Cradle) => new FeedService(app.log, container.s3Client, app.config.FEED_BUCKET), {
+			...commonInjectionOptions
+		})
 	});
 });

@@ -19,7 +19,6 @@ const __dirname = path.dirname(__filename);
 export const afrisetApiUrlParameter = (environment: string) => `/afriset/${environment}/shared/apiUrl`;
 export const afrisetApiNameParameter = (environment: string) => `/afriset/${environment}/shared/apiName`;
 
-
 export class ApiConstruct extends Construct {
 	readonly api: IRestApi;
 
