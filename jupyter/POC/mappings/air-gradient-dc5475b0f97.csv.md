@@ -1,8 +1,8 @@
 Input data, formatted as CSV as the following:
 
 ```csv
-City,State,Country,Latitude,Longitude,pollution_ts,aqius,mainus,aqicn,maincn,wether_ts,pr,hu,ws,wd,ic
-Accra,Greater Accra,Ghana,-0.186964,5.603717,2023-11-25T23:00:00.000Z,74,p2,33,p2,26,1011,82,4.12,272,04n
+locationId,locationName,pm01,pm02,pm10,pm003Count,atmp,rhum,rco2,tvoc,wifi,timestamp,serialno,firmwareVersion,tvocIndex,noxIndex,datapoints
+59513,dc5475b0f97c,17.7,29.3,30.5,3365,25.5,69.45,,,-69,2023-11-12T00:00:00.000Z,dc5475b0f97c,,,,2
 ```
 
 Maps to the AFRI_SET_COMMON json message format as follows:
