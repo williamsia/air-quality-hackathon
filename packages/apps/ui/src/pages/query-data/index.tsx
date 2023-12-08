@@ -121,17 +121,12 @@ export function QueryData() {
 	}, []);
 
 	const downloadFile = async (s3Url: string) => {
-		// const headResponse = await fetch(s3Url, {method: 'HEAD'});
-		// if (headResponse.ok) {
 		const link = document.createElement('a');
 		link.href = s3Url;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
         
-		// } else {
-		// setS3ObjectNotExistNotification("The download has not completed processing. Try again in a few seconds.");
-		// }
 	};
 
 	return (
@@ -160,14 +155,12 @@ export function QueryData() {
 				)}
 				<SpaceBetween direction="vertical" size="m">
 					<Container header={<Header>Upload your data</Header>}>
-						{/* <ProcessingSteps/> */}
 						<Grid gridDefinition={[{ colspan: 8 }, { colspan: 4 }]}>
 							<form onSubmit={onSubmit}>
 								<Form
 									variant="full-page"
 									actions={
 										<SpaceBetween direction="horizontal" size="xs">
-											{/* <Button onClick={() => navigate('/evaluations')} disabled={isLoading} variant='link'>Cancel</Button> */}
 											<Button disabled={files.length < 1 || response.isLoading} variant="primary">
 												Submit
 											</Button>
@@ -194,15 +187,6 @@ export function QueryData() {
 											constraintText=".csv files supported"
 										/>
 									</FormField>
-									{/* <FormField>
-								{' '}
-								<ProgressBar value={36} additionalInfo="Additional information" description="Progress bar description" label="Processing " />
-							</FormField> */}
-
-									{/* <SpaceBetween size='l'>
-							<Description formSubmitted={formSubmitted} evaluation={evaluation} onChange={onChange} loadHelpPanelContent={loadHelpPanelContent} />
-							<Baseline formSubmitted={formSubmitted} evaluation={evaluation} onChange={onChange} loadHelpPanelContent={loadHelpPanelContent} />
-						</SpaceBetween> */}
 								</Form>
 							</form>
 							<ProcessingSteps steps={['Uploading data', 'Reviewing data', 'Saving data', 'Complete']} stepNumber={uploadStep} error={uploadIsError}/>

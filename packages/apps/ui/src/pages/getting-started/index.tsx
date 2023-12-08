@@ -33,8 +33,7 @@ export function GettingStartedPage() {
 			loadHelpPanelContent={loadHelpPanelContent}
 		>
 
-			<ContentLayout header={<GettingStartedHeader />} >
-				<GettingStartedOverView></GettingStartedOverView>
+			<ContentLayout  header={<GettingStartedHeader />} >
 				<GettingStarted></GettingStarted>
 			</ContentLayout>
 

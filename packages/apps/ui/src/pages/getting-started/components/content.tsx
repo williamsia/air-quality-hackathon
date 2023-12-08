@@ -1,15 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-import { Box, SpaceBetween, TextContent, Button } from '@cloudscape-design/components';
+import { Box, SpaceBetween, TextContent, Button, Container, Header } from '@cloudscape-design/components';
 import { useNavigate } from 'react-router-dom';
-
-// const style= {
-// 	['float' as any]: 'right',
-// 	['margin' as any]: '0 0 0 15px',
-// 	['height' as any]: '332px',
-// 	['width' as any]: '288px'
-//   };
-
 
 export function GettingStartedOverView() {
 	return (
@@ -18,8 +10,6 @@ export function GettingStartedOverView() {
 			<TextContent>
 				<br/><br/>
 				<h2>Overview</h2>
-				{/* <img src="/gettingStarted.png"  width="200" height="200" style={style}></img> */}
-
 				<Box color="text-body-secondary" display="inline" fontSize="body-s" fontWeight="normal" variant="p">
 					Air Quality Demo
 				</Box>
@@ -40,17 +30,27 @@ export function GettingStartedOverView() {
 export function GettingStarted() {
 	const navigate = useNavigate();
 	return (
-		<SpaceBetween size="s">
+		<Container
+		header={
+			<Header>
+				Getting Started
+			</Header>
+		}>
+			<SpaceBetween direction='vertical' size='s'>
 			<TextContent >
-				<h2>Get started</h2>
-				<h5>Step 1: Upload your air quality data.</h5>
+				<p>Welcome to the Afri-SET Air Quality Data Analyzer. This tool will take sensor data from various manufacturers and automatically map it into a standardized format.</p>
+				<h5>Step 1: Upload your air quality data in a comma-separated values (CSV) file.</h5>
 				<p>
-					<small>Upload Data.</small>
+					The file will be sent to a Large language model (LLM), which automatically detects the schema and defines a transformation that will convert it into a standardized format. The input data is then transformed and stored in a data store.
+				</p>
+				<h5>Step 2: Download the results.</h5>
+				<p>
+					The application queries the data store for your transformed data and lets you download it as a new CSV file.
 				</p>
 
 			</TextContent>
 			<Box textAlign='right'><Button variant="primary" onClick={() => navigate('/feeds')} >Upload your data</Button></Box>
-
-		</SpaceBetween>
+</SpaceBetween>
+		</Container>
 	);
 }
