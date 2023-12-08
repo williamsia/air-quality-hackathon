@@ -1,16 +1,23 @@
-import { RemovalPolicy } from "aws-cdk-lib";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
-import { DefinitionBody, LogLevel } from "aws-cdk-lib/aws-stepfunctions";
-import { Construct } from "constructs";
+import { Duration, RemovalPolicy, Size, Stack } from 'aws-cdk-lib';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
+import { Effect, Policy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import {
+    DockerImageCode, DockerImageFunction, Runtime, Tracing
+} from 'aws-cdk-lib/aws-lambda';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3';
+import { DefinitionBody, LogLevel } from 'aws-cdk-lib/aws-stepfunctions';
+import { LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { CfnDatabase, CfnTable } from 'aws-cdk-lib/aws-timestream';
+import { Construct } from 'constructs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+import {
+    EventbridgeToStepfunctions, EventbridgeToStepfunctionsProps
+} from '@aws-solutions-constructs/aws-eventbridge-stepfunctions';
+import type { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
-import { Runtime } from "aws-cdk-lib/aws-lambda";
-import { CfnDatabase, CfnTable } from "aws-cdk-lib/aws-timestream";
-import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
-import { fileURLToPath } from "url";
-import path from "path";
-import { Effect, Policy, PolicyDocument, PolicyStatement } from "aws-cdk-lib/aws-iam";
-import { EventbridgeToStepfunctions, EventbridgeToStepfunctionsProps } from '@aws-solutions-constructs/aws-eventbridge-stepfunctions';
-import type { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 export interface StateMachineProperties {
 	environment: string;
@@ -28,7 +35,60 @@ export class FeedMapping extends Construct {
 	constructor(scope: Construct, id: string, props: StateMachineProperties) {
 		super(scope, id);
 
+		const accountId = Stack.of(this).account;
+		const region = Stack.of(this).region;
 		const namePrefix = `afriset-${props.environment}`;
+
+		const holdingBucket = new Bucket(this, 'afrisetScenarioHoldingBucket', {
+			bucketName: `${namePrefix}-${accountId}-${region}-afriset-holding`,
+			publicReadAccess: false,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			removalPolicy: RemovalPolicy.DESTROY,
+			autoDeleteObjects: true
+		});
+
+		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
+
+		const transformerGeneratorPolicy = new Policy(this, 'TransformerGeneratorPolicy', {
+			statements: [
+				new PolicyStatement({
+					sid: 'bedrock',
+					actions: ['bedrock:InvokeModel'],
+					resources: [
+						`arn:aws:bedrock:${region}::foundation-model/amazon.titan-embed-text-v1`,
+						`arn:aws:bedrock:${region}::foundation-model/anthropic.claude-v2:1`
+					],
+				})
+			]
+		})
+
+		const transformerGeneratorRepo = Repository.fromRepositoryName(this, 'TransformerGeneratorRepo', 'afri-set-transformer');
+
+		const transformerGeneratorFunction = new DockerImageFunction(this, 'TransformerGeneratorFunction', {
+			functionName: `${namePrefix}-transformer-generator`,
+			description: `Afriset Transformer Generator (${props.environment})`,
+			code: DockerImageCode.fromEcr(transformerGeneratorRepo, {
+			  tagOrDigest: "latest",
+			}),
+			environment: {
+				NLTK_DATA: '/tmp',
+				NOTIFICATION_LAMBDA: props.sendMessageLambda.functionName,
+			},
+			ephemeralStorageSize: Size.gibibytes(5),
+			memorySize: 1024,
+			tracing: Tracing.ACTIVE,
+			timeout: Duration.minutes(5),
+			logRetention: RetentionDays.ONE_WEEK,
+		});
+		transformerGeneratorFunction.role?.attachInlinePolicy(transformerGeneratorPolicy);
+		props.sendMessageLambda.grantInvoke(transformerGeneratorFunction);
+
+		holdingBucket.grantReadWrite(transformerGeneratorFunction);
+
+		const transformerGeneratorTask = new LambdaInvoke(this, 'TransformerGeneratorInvoke', {
+			lambdaFunction: transformerGeneratorFunction,
+			outputPath: '$.Payload'
+		});
 
 		const feedDatabase = new CfnDatabase(this, 'SensorDatabase', {
 			databaseName: namePrefix
@@ -67,15 +127,6 @@ export class FeedMapping extends Construct {
 
 		this.timestreamDatabaseName = namePrefix;
 		this.timestreamTableName = `${namePrefix}-sensor-feeds`;
-
-		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
-
-		const feedMapping = new PythonFunction(this, 'FeedMappingFunction', {
-			entry: path.join(__dirname, '../../../python/feedMapping'), // required
-			runtime: Runtime.PYTHON_3_8, // required
-			functionName: `${namePrefix}-feed-mapping-task`,
-			handler: 'lambda_handler', // optional, defaults to 'handler',
-		});
 
 		const dynamicTransformerLambda = new PythonFunction(this, 'DynamicTransformerFunction', {
 			entry: path.join(__dirname, '../../../python/dynamicTransformer'), // required
@@ -117,10 +168,6 @@ export class FeedMapping extends Construct {
 
 		props.sendMessageLambda.grantInvoke(dynamicTransformerLambda);
 
-		const feedMappingTask = new LambdaInvoke(this, 'FeedMappingTask', {
-			lambdaFunction: feedMapping,
-			outputPath: '$.Payload'
-		});
 
 		const dynamicTransformerTask = new LambdaInvoke(this, 'DynamicTransformerTask', {
 			lambdaFunction: dynamicTransformerLambda,
@@ -130,7 +177,8 @@ export class FeedMapping extends Construct {
 		const constructProps: EventbridgeToStepfunctionsProps = {
 			stateMachineProps: {
 				definitionBody: DefinitionBody.fromChainable(
-					feedMappingTask.next(dynamicTransformerTask)),
+					transformerGeneratorTask.next(dynamicTransformerTask)),
+
 				logs: {destination: feedMappingStateMachineLogGroup, level: LogLevel.ERROR, includeExecutionData: true},
 				stateMachineName: `${namePrefix}-feed-mapping`,
 				tracingEnabled: true
