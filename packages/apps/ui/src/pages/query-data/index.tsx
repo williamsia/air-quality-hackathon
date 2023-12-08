@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 import ContentLayout from '@cloudscape-design/components/content-layout';
 import React, { FormEventHandler, useEffect, useRef, useState } from 'react';
-import { Alert, AppLayoutProps, Box, Button, ColumnLayout, Container, FileUpload, Form, FormField, Grid, Header, Modal, ProgressBar, SpaceBetween, Spinner } from '@cloudscape-design/components';
+import { Alert, AppLayoutProps, Button, Container, FileUpload, Form, FormField, Grid, Header, SpaceBetween } from '@cloudscape-design/components';
 import { Breadcrumbs } from '../../components';
 import ShellLayout from '../../layouts/shell';
 import '../../styles/form.scss';
@@ -29,7 +29,7 @@ const finishedSavingData: WsMessage = {
 
 export function QueryData() {
 	const [wsConnection, setWsConnection] = useState<WebSocket>();
-    
+
 
 	useEffect(() => {
 		if (wsConnection) {

@@ -1,14 +1,16 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
-import ContentLayout from '@cloudscape-design/components/content-layout';
-import React, { useRef, useState } from 'react';
-import { AppLayoutProps } from '@cloudscape-design/components';
-import { Breadcrumbs } from '../../components';
-import ShellLayout from '../../layouts/shell';
-import { GettingStartedHeader, GettingStartedMainInfo } from './components/header';
-import { GettingStarted, GettingStartedOverView } from './components/content';
 import '../../styles/base.scss';
 
+import React, { useRef, useState } from 'react';
+
+import { AppLayoutProps } from '@cloudscape-design/components';
+// SPDX-License-Identifier: MIT-0
+import ContentLayout from '@cloudscape-design/components/content-layout';
+
+import { Breadcrumbs } from '../../components';
+import ShellLayout from '../../layouts/shell';
+import { GettingStarted } from './components/content';
+import { GettingStartedHeader, GettingStartedMainInfo } from './components/header';
 
 export function GettingStartedPage() {
 	const appLayoutRef = useRef<AppLayoutProps.Ref>(null);

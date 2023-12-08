@@ -1,4 +1,4 @@
-import { Container, Header, StatusIndicator } from "@cloudscape-design/components"
+import { StatusIndicator } from "@cloudscape-design/components"
 
 function getStepType(stepNumber: number, indx: number, error?: boolean) {
     if (stepNumber === indx) {
