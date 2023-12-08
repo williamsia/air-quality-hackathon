@@ -6,10 +6,8 @@ from steps import templateCreation
 
 
 def lambda_handler(event, context):
-    print('request: {}'.format(json.dumps(event)))
-
-    templateCreation
-
+    message = 'Hello {} {}!'
+    print(event)
     return {
         'statusCode': 200,
         'headers': {

@@ -8,10 +8,12 @@ import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
 import { fileURLToPath } from "url";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import type { IUserPool } from "aws-cdk-lib/aws-cognito";
+import type { Bucket } from "aws-cdk-lib/aws-s3";
 
 interface CognitoRestApiProps {
 	userPool: IUserPool
 	environment: string;
+	bucket: Bucket;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -38,6 +40,7 @@ export class ApiConstruct extends Construct {
 			logRetention: RetentionDays.ONE_WEEK,
 			environment: {
 				NODE_ENV: props.environment,
+				FEED_BUCKET: props.bucket.bucketName
 			},
 			bundling: {
 				minify: true,
@@ -51,6 +54,8 @@ export class ApiConstruct extends Construct {
 			depsLockFilePath: path.join(__dirname, '../../../common/config/rush/pnpm-lock.yaml'),
 			architecture: Architecture.ARM_64
 		});
+
+		props.bucket.grantReadWrite(apiLambda)
 
 		const authorizer = new CognitoUserPoolsAuthorizer(this, 'Authorizer', {
 			cognitoUserPools: [props.userPool]
