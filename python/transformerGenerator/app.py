@@ -82,7 +82,7 @@ def execute(prompt, query) :
 
 def lambda_handler(event, context):
 
-    transformers=[]
+    responses=[]
 
     for record in event['Records']:
         # retrieve the file details to process, and download locally
@@ -103,7 +103,7 @@ def lambda_handler(event, context):
 
         query = """
 Map the following provided within the <data></data> XML tag to the AFRI_SET_COMMON format:
-<data>""" + input_data.join() + """
+<data>""" + '\n'.join(input_data) + """
 </data>
 """
         result : str = execute(create_transformer_prompt, query)
@@ -119,8 +119,12 @@ Map the following provided within the <data></data> XML tag to the AFRI_SET_COMM
         transformer_class_bytes = transformer_class.encode("ascii")
         base64_bytes = base64.b64encode(transformer_class_bytes)
         base64_string = base64_bytes.decode("ascii")
-        transformers.append(base64_string)
-    return transformers
+        responses.append({
+            'bucket': bucket,
+            'key': key,
+            'transformer': base64_string
+		})
+    return responses
 
 
 # perform all the initialization we can outside the invocation flow for faster warm starts
