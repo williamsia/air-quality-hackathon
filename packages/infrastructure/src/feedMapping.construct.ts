@@ -1,5 +1,6 @@
 
 import { Duration, RemovalPolicy, Size, Stack } from 'aws-cdk-lib';
+import { Repository } from 'aws-cdk-lib/aws-ecr';
 import { Effect, Policy, PolicyDocument, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import {
     Architecture, DockerImageCode, DockerImageFunction, Runtime, Tracing
@@ -56,10 +57,16 @@ export class FeedMapping extends Construct {
 					],
 				})
 			]
-		});
+		})
+
+		const transformerGeneratorRepo = Repository.fromRepositoryName(this, 'TransformerGeneratorRepo', 'afri-set-transformer');
 
 		const transformerGeneratorFunction = new DockerImageFunction(this, 'TransformerGeneratorFunction', {
-			code: DockerImageCode.fromImageAsset(path.join(__dirname, '../../../python/transformerGenerator')),
+			functionName: `${namePrefix}-transformer-generator`,
+			description: `Afriset Transformer Generator (${props.environment})`,
+			code: DockerImageCode.fromEcr(transformerGeneratorRepo, {
+			  tagOrDigest: "latest",
+			}),
 			environment: {
 				'NLTK_DATA': '/tmp'
 			},
