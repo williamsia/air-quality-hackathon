@@ -3,13 +3,14 @@ import uuid
 import time
 import hashlib
 import base64
+import csv
 
 
 import logging
 logger = logging.getLogger()
 
 from utils import timeStream
-# from utils import lambda
+from utils import lambdaClient
 
 # Get the Environment variables
 
@@ -31,7 +32,7 @@ def lambda_handler(event, context):
     try:
         print('before transformer_code')
         transformer_code : str = base64.b64decode(event['transformer']).decode()
-        transformer_code += "\nconvert(data)"
+        transformer_code += "\ntransformed=convert(data)"
         logger.debug("transformer_code:\n", transformer_code)
         print("transformer_code:\n", transformer_code)
     except (KeyError, IndexError):
@@ -39,19 +40,26 @@ def lambda_handler(event, context):
         exit
 
     # save the transformer class to local temp storage so we can later load it as a class
-    local_class_name = os.path.join("/tmp", str(uuid.uuid4()))
-    # local_class_name = os.path.join("/tmp/debugging")
-    with open(local_class_name, "w") as f:
-        f.write(transformer_code)
+    # local_class_name = os.path.join("/tmp", str(uuid.uuid4()))
+    local_class_name = os.path.join("/tmp/debugging")
+    temp_file_name = os.path.join("/tmp", temp)
+    # with open(local_class_name, "w") as f:
+    #     f.write(transformer_code)
 
     # dynamically execute it to convert the data
     with open(local_class_name, mode="r", encoding="utf-8") as transformer_file:
+        for line in transformer_file:
+           if line.startswith('def convert'):
+              line
         transformer_class = transformer_file.read()
         print("read transformer class:\n")
 
     # print({"data":data})
-    transformed = exec(transformer_class, {"data":data})
+    local = {}
+    exec(transformer_class, {"data":data},local)
+    transformed = local['transformed']
 
+    print("transformed:",transformed)
 
     # Store transformed in timeseries step 2
     timeStreamClient = timeStream.get_timeStream_client()

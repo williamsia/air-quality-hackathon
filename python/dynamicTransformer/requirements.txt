@@ -1,0 +1,4 @@
+# List all python libraries for the lambda
+boto3>=1.33.10
+botocore>=1.33.10
+csv>= 3.0.0
