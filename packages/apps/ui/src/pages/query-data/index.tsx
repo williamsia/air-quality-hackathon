@@ -9,6 +9,7 @@ import '../../styles/form.scss';
 import { EvaluationHeader, EvaluationMainInfo } from './components/header';
 import { useLazyGetDownloadUrlQuery, useUploadFileMutation } from '../../services/afriset.ts';
 import { ProcessingSteps } from './components/processingSteps.tsx';
+import {motion} from 'framer-motion';
 const websocketUrl = import.meta.env.VITE_SCENARIO_WEBSOCKET_API_BASE_URL;
 
 interface WsMessage {
@@ -95,6 +96,8 @@ export function QueryData() {
 
 	const [s3ObjectNotExistNotification, setS3ObjectNotExistNotification] = useState('');
 
+    const [isSuccess, setIsSuccess] = useState(false);
+
 	const onClickDownload = async () => {
         setDownloadStep(1);
 		await downloadFile(presignedDownloadUrl);
@@ -120,13 +123,34 @@ export function QueryData() {
 		};
 	}, []);
 
+    const Balloon = ({left, delay}) => { return (
+        <motion.div
+        initial={{y: '100%', x: left}}
+        animate={{y: '-100vh'}}
+        transition={{type: 'spring', duration: 3, delay}}
+        style={{fontSize: '8rem'}}>
+            🎈
+        </motion.div>);
+    }
+
+    const BalloonAnimation = () => {
+        const numberOfBalloons = 5;
+        const balloons = [];
+        for (let i = 0; i < numberOfBalloons; i++) {
+            const left = `${Math.random() * 90}%`;
+            const delay = Math.random() * 0.5;
+            balloons.push(<Balloon key={i} left={left} delay={delay}/>);
+        }
+        return <div>{balloons}</div>
+    }
 	const downloadFile = async (s3Url: string) => {
 		const link = document.createElement('a');
 		link.href = s3Url;
 		document.body.appendChild(link);
 		link.click();
 		document.body.removeChild(link);
-        
+        setTimeout(() => setIsSuccess(true), 500);
+        setTimeout(() => setIsSuccess(false), 4000);
 	};
 
 	return (
@@ -203,6 +227,7 @@ export function QueryData() {
 					</Container>
 				</SpaceBetween>
 			</ContentLayout>
+            {isSuccess && <BalloonAnimation/>}
 		</ShellLayout>
 	);
 }
