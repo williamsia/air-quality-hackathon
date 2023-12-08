@@ -35,3 +35,6 @@ aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --
 
 # Push the image to ECR
 docker push "$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/afri-set-transformer:latest"
+
+
+

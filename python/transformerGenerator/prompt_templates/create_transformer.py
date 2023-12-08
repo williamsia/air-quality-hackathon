@@ -11,7 +11,6 @@ Human: Use the context within the following <context></context> XML tag to provi
 </schema>
 
 <code>
-from datetime import datetime
 from typing import TypeAlias
 import csv
 # TODO: add any other imports here
@@ -19,7 +18,7 @@ import csv
 @dataclass
 class MappedData:
 	sensor_id: str
-	timestamp: datetime
+	timestamp: string
 	pm0_3: float
 	pm0_5: float
 	pm1: float
@@ -32,7 +31,10 @@ class MappedData:
 
 MappedDataList: TypeAlias = list(MappedData)
 
+### BEGIN: convert function
 def convert(input:str) -> MappedDataList:
+	import csv
+
 	\"\"\"Converts the provided data to the AFRI_SET_COMMON format.
 
 	Parameters
@@ -45,7 +47,12 @@ def convert(input:str) -> MappedDataList:
 	MappedDataList
 		A list of line items from the incoming data converted to the AFRI_SET_COMMON format.
 	\"\"\"
-	# TODO: add implementation here
+	# TODO: add convert function implementation here
+
+### END: convert function
+
+\"\"\"Returns the converted data in the AFRI_SET_COMMON format.\"\"\"
+converted_data = convert(data)
 
 </code>
 

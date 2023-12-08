@@ -42,7 +42,7 @@ bedrock_client = bedrock.get_bedrock_client(
 s3_client = boto3.client('s3')
 
 def configure_langchain():
-    llm = Bedrock(model_id="anthropic.claude-v2:1", client=bedrock_client, model_kwargs={'max_tokens_to_sample':5000})
+    llm = Bedrock(model_id="anthropic.claude-v2:1", client=bedrock_client, model_kwargs={'max_tokens_to_sample':10000})
     bedrock_embeddings = BedrockEmbeddings(model_id="amazon.titan-embed-text-v1", client=bedrock_client)
     return (llm, bedrock_embeddings)
 
@@ -62,8 +62,8 @@ def initialize_vector_store(docs, embeddings):
     return vs
 
 def execute(prompt, query) :
-    # print("prompt:\n", prompt)
-    # print("query:\n", query)
+    print("prompt:\n", prompt)
+    print("query:\n", query)
 
     qa = RetrievalQA.from_chain_type(
         llm=llm,
@@ -76,7 +76,7 @@ def execute(prompt, query) :
     )
     answer = qa({"query": query})
 
-    # print("result:\n", answer['result'])
+    print("answer:\n", answer)
     return answer['result']
 
 def lambda_handler(event, context):
@@ -86,19 +86,13 @@ def lambda_handler(event, context):
     except (KeyError, IndexError):
         raise MissingParametersException("Missing `data` parameter(s) in event.")
 
-    # mode : str = event.get('mode')	# `TRANSFORM` or `TRANSFORMER`
-    # if mode == None:
-    #     mode = "TRANSFORM"
-    # prompt = create_transformer_prompt if mode=="TRANSFORMER" else transform_prompt
-    prompt = create_transformer_prompt
-
     query = """
 Map the following provided within the <data></data> XML tag to the AFRI_SET_COMMON format:
 <data>""" + data + """
 </data>
 """
-    result : str = execute(prompt, query)
-    # print(result)
+    result : str = execute(create_transformer_prompt, query)
+
 
     # hack to improve - extract the class from the result
     start_token = "<python>"
