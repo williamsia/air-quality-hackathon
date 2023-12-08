@@ -22,14 +22,14 @@ export const configSchema = Type.Object({
 	LOG_LEVEL: Type.String({default: 'info'}),
 	NODE_ENV: Type.String(),
 	FEED_BUCKET: Type.String(),
+	TIMESTREAM_DATABASE: Type.String(),
+	TIMESTREAM_TABLE: Type.String()
 });
 
 export type ConfigSchemaType = Static<typeof configSchema>;
-
 export default fp<FastifyEnvOptions>(async (app): Promise<void> => {
 	await app.register(fastifyEnv, {
 		confKey: 'config',
-		// schema: convertFromTypeBoxIntersectToJSONSchema(configSchema),
 		schema: configSchema,
 		dotenv: true
 	});

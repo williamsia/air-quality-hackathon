@@ -70,6 +70,9 @@ await Promise.all([
 	}),
 	getValues('shared', {
 		VITE_SCENARIO_API_BASE_URL: 'apiUrl'
+	}),
+	getValues('shared', {
+		VITE_SCENARIO_WEBSOCKET_API_BASE_URL: 'webSocketApiUrl'
 	})
 ]);
 
