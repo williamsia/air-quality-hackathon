@@ -13,10 +13,12 @@ export type NewFeed = Static<typeof newFeedResource>;
  * Evaluation specific resource attributes
  */
 const url = Type.String({ description: 'Pre-signed S3 url to upload the feeds data.' });
+const feedId = Type.String({ description: 'Feed unique ID' });
 
 // eslint-disable-next-line @rushstack/typedef-var
 export const feedUploadResource = Type.Object(
 	{
+		feedId,
 		url,
 	},
 	{ $id: 'scenarioServiceItemsResource' }

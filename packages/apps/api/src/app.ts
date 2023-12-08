@@ -23,6 +23,8 @@ import { handleError } from './common/errors.js';
 import { SecurityContext } from "./common/scopes.js";
 import postSensorFeedRoute from "./feeds/post.handler.js";
 import { feedUploadResource, newFeedResource } from "./feeds/schemas.js";
+import listMeasurementsRoute from "./measurements/list.handler.js";
+import { measurementResource, measurementsResponse } from "./measurements/schemas.js";
 
 export const buildApp = async (): Promise<FastifyInstance> => {
 	const environment = process.env['NODE_ENV'] as string;
@@ -74,6 +76,10 @@ export const buildApp = async (): Promise<FastifyInstance> => {
 	app.addSchema(feedUploadResource);
 	app.addSchema(newFeedResource);
 	await app.register(postSensorFeedRoute);
+
+	app.addSchema(measurementResource);
+	app.addSchema(measurementsResponse);
+	await app.register(listMeasurementsRoute);
 
 	return app as unknown as FastifyInstance;
 };

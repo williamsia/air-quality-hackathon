@@ -13,7 +13,7 @@ export class FeedService {
 				private readonly feedBucket: string) {
 	}
 
-	public async create(newFeed: NewFeed): Promise<string> {
+	public async create(newFeed: NewFeed): Promise<{feedId: string, url: string}> {
 		this.logger.debug(`FeedService > create > newFeed: ${JSON.stringify(newFeed)}`);
 		ow(newFeed.dataRow, ow.number.greaterThan(0));
 
@@ -24,7 +24,7 @@ export class FeedService {
 		const signedUrl = await getSignedUrl(this.s3Client, s3Command, {expiresIn: newFeed.expiration});
 
 		this.logger.debug(`FeedService > create > exit >`);
-		return signedUrl;
+		return {feedId: id, url: signedUrl};
 	}
 
 }

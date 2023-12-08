@@ -5,10 +5,27 @@ import HelpPanel from "@cloudscape-design/components/help-panel"
 import Breadcrumbs from "./sharedComponents/Breadcrumbs"
 import ShellLayout from "./sharedComponents/shell"
 import DemoNavigation from "./sharedComponents/DemoNavigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { Alert, Button } from "@cloudscape-design/components";
 
+
+const websocketUrl = import.meta.env.VITE_SCENARIO_WEBSOCKET_API_BASE_URL;
 export default function DemoHome() {
 	const [toolsOpen, setToolsOpen] = useState<boolean>(true)
+	const [notificationMessage, setNotificationMessage] = useState<string>()
+	const [wsConnection, setWsConnection] = useState<WebSocket>()
+
+	useEffect(() => {
+		if (wsConnection) {
+			wsConnection.onopen = (e) => {
+				console.log('connection is established' + JSON.stringify(e))
+			}
+			wsConnection.onmessage = (message) => {
+				console.log(message.data);
+				setNotificationMessage(message.data)
+			}
+		}
+	}, [wsConnection]);
 
 	return (
 		<ShellLayout
@@ -23,6 +40,18 @@ export default function DemoHome() {
 			}
 			toolsHide={false}
 		>
+
+
+			{notificationMessage &&
+				<Alert
+					statusIconAriaLabel="Info"
+					header="Feed Mapping"
+					dismissible={true}
+					onDismiss={() => setNotificationMessage(undefined)}
+				>
+					{notificationMessage}
+				</Alert>
+			}
 			<ContentLayout
 				header={
 					<Header
@@ -33,7 +62,13 @@ export default function DemoHome() {
 					</Header>
 				}
 			>
-
+				<Button onClick={() => {
+					const connection = new WebSocket(websocketUrl);
+					setWsConnection(connection);
+				}}>Connect</Button>
+				<Button onClick={() => {
+					if (wsConnection) wsConnection.close();
+				}}>Disconnect</Button>
 			</ContentLayout>
 		</ShellLayout>
 	)

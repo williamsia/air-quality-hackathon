@@ -2,19 +2,17 @@
 
 import { Auth } from '@aws-amplify/auth';
 
-if (require.main === module) {
-	const [username, password, newPassword] = process.argv.slice(2);
+const [username, password, newPassword] = process.argv.slice(2);
 
-	if (process.argv.length < 4) {
-		throw new Error('Missing arguments\r\nHow to run the command: \r\n> npm run generate:token -- <environment> <username> <password> ');
-	}
-	(async () => {
-		process.env["COGNITO_CLIENT_ID"] = '3b64nic510gt297a3j3p3uo3g2';
-		process.env["COGNITO_USER_POOL_ID"] = 'us-west-2_1dI0trEcP';
-		const token = await authorizeUser(username!, password!, newPassword!);
-		console.log(`token: ${token}`);
-	})().catch((e) => console.log(e));
+if (process.argv.length < 4) {
+	throw new Error('Missing arguments\r\nHow to run the command: \r\n> npm run generate:token -- <environment> <username> <password> ');
 }
+(async () => {
+	process.env["COGNITO_CLIENT_ID"] = '7r2krg8vls03l516t9ike2vh54';
+	process.env["COGNITO_USER_POOL_ID"] = 'us-west-2_cGpkXge2i';
+	const token = await authorizeUser(username!, password!, newPassword!);
+	console.log(`token: ${token}`);
+})().catch((e) => console.log(e));
 
 export async function authorizeUser(username: string, password: string, newPassword?: string): Promise<string> {
 	let userPoolId = process.env['COGNITO_USER_POOL_ID'];

@@ -16,7 +16,6 @@ from utils import lambdaClient
 
 DATABASE_NAME = os.getenv('DATABASE_NAME')
 TABLE_NAME = os.getenv('TABLE_NAME')
-BUCKET_NAME = os.getenv('BUCKET_NAME')
 NOTIFICATION_FUNCTION_NAME = os.getenv('NOTIFICATION_FUNCTION_NAME')
 
 
