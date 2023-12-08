@@ -85,7 +85,6 @@ export function QueryData() {
 				.unwrap()
 				.then((url) => {
 					setPresignedDownloadUrl(url);
-                    setUploadStep(1);
 				});
 		}
 	}, [response.data?.feedId]);
@@ -111,6 +110,7 @@ export function QueryData() {
 		event.preventDefault();
 		upload({ dataRow: 1, file: files[0], fileType: 'csv' });
 		setFiles([]);
+        setUploadStep(1)
 	};
 
 	useEffect(() => {
@@ -123,11 +123,11 @@ export function QueryData() {
 		};
 	}, []);
 
-    const Balloon = ({left, delay}) => { return (
+    const Balloon = (props: {left: string, delay: number}) => { return (
         <motion.div
-        initial={{y: '100%', x: left}}
+        initial={{y: '100%', x: props.left}}
         animate={{y: '-100vh'}}
-        transition={{type: 'spring', duration: 3, delay}}
+        transition={{type: 'spring', duration: 3, delay: props.delay}}
         style={{fontSize: '8rem'}}>
             🎈
         </motion.div>);
