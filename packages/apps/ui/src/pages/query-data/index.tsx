@@ -85,7 +85,6 @@ export function QueryData() {
 				.unwrap()
 				.then((url) => {
 					setPresignedDownloadUrl(url);
-                    setUploadStep(1);
 				});
 		}
 	}, [response.data?.feedId]);
@@ -111,6 +110,7 @@ export function QueryData() {
 		event.preventDefault();
 		upload({ dataRow: 1, file: files[0], fileType: 'csv' });
 		setFiles([]);
+        setUploadStep(1)
 	};
 
 	useEffect(() => {
