@@ -5,7 +5,7 @@ import { Auth } from "./auth.construct.js";
 import { FrontEnd } from "./frontend.construct.js";
 import { FeedMapping } from "./feedMapping.construct.js";
 import { Notification } from "./notification.js";
-import { BlockPublicAccess, Bucket, BucketEncryption } from "aws-cdk-lib/aws-s3";
+import { BlockPublicAccess, Bucket, BucketEncryption, HttpMethods } from "aws-cdk-lib/aws-s3";
 
 export interface AfrisetProperties {
 	environment: string;
@@ -39,7 +39,15 @@ export class AfrisetStack extends Stack {
 			enforceSSL: true,
 		});
 
-		new FeedMapping(this, 'FeedMapping',
+		feedBucket.addCorsRule({
+			allowedHeaders: ['*'],
+			allowedMethods: [HttpMethods.PUT, HttpMethods.GET, HttpMethods.HEAD],
+			allowedOrigins: ['*'],
+			exposedHeaders: ['ETag'],
+			maxAge: 3000
+		});
+
+		const feedMapping = new FeedMapping(this, 'FeedMapping',
 			{
 				environment: props.environment,
 				sendMessageLambda: notification.sendMessageLambda,
@@ -55,7 +63,9 @@ export class AfrisetStack extends Stack {
 		new ApiConstruct(this, 'API', {
 			environment: props.environment,
 			userPool: auth.userPool,
-			bucket: feedBucket
+			bucket: feedBucket,
+			timestreamDatabaseName: feedMapping.timestreamDatabaseName,
+			timestreamTableName: feedMapping.timestreamTableName
 		})
 	}
 }

@@ -20,7 +20,10 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import pkg from 'aws-xray-sdk';
 import { S3Client } from '@aws-sdk/client-s3';
 import { FeedService } from "../feeds/service.js";
+import { MeasurementsService } from "../measurements/service.js";
+import { MeasurementsRepository } from '../measurements/repository.js';
 import { TimestreamWriteClient } from '@aws-sdk/client-timestream-write';
+import { TimestreamQueryClient } from "@aws-sdk/client-timestream-query";
 import { LambdaClient } from '@aws-sdk/client-lambda';
 
 const {captureAWSv3Client} = pkg;
@@ -29,8 +32,11 @@ declare module '@fastify/awilix' {
 	interface Cradle {
 		dynamoDBDocumentClient: DynamoDBDocumentClient;
 		s3Client: S3Client;
+		measurementsRepository: MeasurementsRepository;
 		feedService: FeedService;
+		measurementsService: MeasurementsService;
 		timestreamWriteClient: TimestreamWriteClient;
+		timestreamQueryClient: TimestreamQueryClient;
 		lambdaClient: LambdaClient;
 	}
 }
@@ -61,6 +67,15 @@ class TimestreamWriteClientFactory {
 			region
 		}));
 		return timestreamWriteClient;
+	}
+}
+
+class TimestreamQueryClientFactory {
+	public static create(region: string): TimestreamQueryClient {
+		const timestreamQueryClient = captureAWSv3Client(new TimestreamQueryClient({
+			region
+		}));
+		return timestreamQueryClient;
 	}
 }
 
@@ -111,7 +126,19 @@ export default fp<FastifyAwilixOptions>(async (app): Promise<void> => {
 			...commonInjectionOptions
 		}),
 
+		timestreamQueryClient: asFunction(() => TimestreamQueryClientFactory.create(awsRegion), {
+			...commonInjectionOptions
+		}),
+
 		feedService: asFunction((container: Cradle) => new FeedService(app.log, container.s3Client, app.config.FEED_BUCKET), {
+			...commonInjectionOptions
+		}),
+
+		measurementsRepository: asFunction((container: Cradle) => new MeasurementsRepository(app.log, container.timestreamQueryClient, app.config.TIMESTREAM_DATABASE, app.config.TIMESTREAM_TABLE), {
+			...commonInjectionOptions
+		}),
+
+		measurementsService: asFunction((container: Cradle) => new MeasurementsService(app.log, container.s3Client, app.config.FEED_BUCKET, container.measurementsRepository), {
 			...commonInjectionOptions
 		})
 	});

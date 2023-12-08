@@ -8,8 +8,8 @@ if (process.argv.length < 4) {
 	throw new Error('Missing arguments\r\nHow to run the command: \r\n> npm run generate:token -- <environment> <username> <password> ');
 }
 (async () => {
-	process.env["COGNITO_CLIENT_ID"] = '4n1kcmslj0oojn8b4aev4tk9kd';
-	process.env["COGNITO_USER_POOL_ID"] = 'ap-southeast-2_9NUAEpfja';
+	process.env["COGNITO_CLIENT_ID"] = '7r2krg8vls03l516t9ike2vh54';
+	process.env["COGNITO_USER_POOL_ID"] = 'us-west-2_cGpkXge2i';
 	const token = await authorizeUser(username!, password!, newPassword!);
 	console.log(`token: ${token}`);
 })().catch((e) => console.log(e));
