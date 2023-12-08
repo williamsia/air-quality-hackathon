@@ -45,7 +45,7 @@ def notify(status:str, stepNumber:int):
     lambda_client.invoke (
         FunctionName=NOTIFICATION_FUNCTION_NAME,
         InvocationType='RequestResponse',
-        Payload='{"status": "' + status + '","stepNumber":'  + stepNumber + '}'
+        Payload='{"status": "' + status + '","stepNumber":'  + str(stepNumber) + '}'
     )
 
 def configure_langchain():
