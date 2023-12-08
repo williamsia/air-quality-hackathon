@@ -19,6 +19,9 @@ importers:
       '@aws-sdk/client-pricing':
         specifier: 3.441.0
         version: 3.441.0
+      '@aws-sdk/client-timestream-query':
+        specifier: 3.441.0
+        version: 3.441.0
       '@aws-sdk/client-timestream-write':
         specifier: 3.441.0
         version: 3.441.0
@@ -230,6 +233,9 @@ importers:
       dayjs:
         specifier: 1.11.10
         version: 1.11.10
+      framer-motion:
+        specifier: ~10.16.15
+        version: 10.16.15(react-dom@18.2.0)(react@18.2.0)
       localforage:
         specifier: ~1.10.0
         version: 1.10.0
@@ -2362,6 +2368,55 @@ packages:
       tslib: 2.5.0
     transitivePeerDependencies:
       - react-native
+    dev: false
+
+  /@aws-sdk/client-timestream-query@3.441.0:
+    resolution: {integrity: sha512-oroS5+kZtVe2dbpWyQDAAGufd9AEX5ZX2IKij2ALAZ1+NG1NSdRuzEGPpHsBRZXcfSQ2yHjhDSEcCUgecfXrZw==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-crypto/sha256-browser': 3.0.0
+      '@aws-crypto/sha256-js': 3.0.0
+      '@aws-sdk/client-sts': 3.441.0
+      '@aws-sdk/core': 3.441.0
+      '@aws-sdk/credential-provider-node': 3.441.0
+      '@aws-sdk/middleware-endpoint-discovery': 3.433.0
+      '@aws-sdk/middleware-host-header': 3.433.0
+      '@aws-sdk/middleware-logger': 3.433.0
+      '@aws-sdk/middleware-recursion-detection': 3.433.0
+      '@aws-sdk/middleware-signing': 3.433.0
+      '@aws-sdk/middleware-user-agent': 3.438.0
+      '@aws-sdk/region-config-resolver': 3.433.0
+      '@aws-sdk/types': 3.433.0
+      '@aws-sdk/util-endpoints': 3.438.0
+      '@aws-sdk/util-user-agent-browser': 3.433.0
+      '@aws-sdk/util-user-agent-node': 3.437.0
+      '@smithy/config-resolver': 2.0.21
+      '@smithy/fetch-http-handler': 2.3.1
+      '@smithy/hash-node': 2.0.17
+      '@smithy/invalid-dependency': 2.0.15
+      '@smithy/middleware-content-length': 2.0.17
+      '@smithy/middleware-endpoint': 2.2.3
+      '@smithy/middleware-retry': 2.0.24
+      '@smithy/middleware-serde': 2.0.15
+      '@smithy/middleware-stack': 2.0.9
+      '@smithy/node-config-provider': 2.1.8
+      '@smithy/node-http-handler': 2.2.1
+      '@smithy/protocol-http': 3.0.11
+      '@smithy/smithy-client': 2.1.18
+      '@smithy/types': 2.7.0
+      '@smithy/url-parser': 2.0.15
+      '@smithy/util-base64': 2.0.1
+      '@smithy/util-body-length-browser': 2.0.1
+      '@smithy/util-body-length-node': 2.1.0
+      '@smithy/util-defaults-mode-browser': 2.0.22
+      '@smithy/util-defaults-mode-node': 2.0.29
+      '@smithy/util-endpoints': 1.0.7
+      '@smithy/util-retry': 2.0.8
+      '@smithy/util-utf8': 2.0.2
+      tslib: 2.5.0
+      uuid: 8.3.2
+    transitivePeerDependencies:
+      - aws-crt
     dev: false
 
   /@aws-sdk/client-timestream-write@3.441.0:
@@ -6129,6 +6184,19 @@ packages:
   /@emotion/hash@0.8.0:
     resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
     dev: false
+
+  /@emotion/is-prop-valid@0.8.8:
+    resolution: {integrity: sha512-u5WtneEAr5IDG2Wv65yhunPSMLIpuKsbuOktRojfrEiEvRyC85LgPMZI63cr7NUqT8ZIGdSVg8ZKGxIug4lXcA==}
+    requiresBuild: true
+    dependencies:
+      '@emotion/memoize': 0.7.4
+    dev: false
+    optional: true
+
+  /@emotion/memoize@0.7.4:
+    resolution: {integrity: sha512-Ja/Vfqe3HpuzRsG1oBtWTHk2PGZ7GR+2Vz5iYGelAw8dx32K0y7PjVuxK6z1nMpZOqAFsRUPCkK1YjJ56qJlgw==}
+    dev: false
+    optional: true
 
   /@esbuild-plugins/node-globals-polyfill@0.2.3(esbuild@0.19.4):
     resolution: {integrity: sha512-r3MIryXDeXDOZh7ih1l/yE9ZLORCd5e8vWg02azWRGj5SPTuoh69A2AIyn0Z31V/kHBfZ4HgWJ+OK3GTTwLmnw==}
@@ -11513,6 +11581,24 @@ packages:
   /forwarded@0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
+    dev: false
+
+  /framer-motion@10.16.15(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-BapW1EKc/Sgph1rKEwL9bFt2B79z7bu7jN4Up1jGUaTE78WBsVO+6eCmoUZsQH0hHtRUDnnTqjjBbM7dk9Kp8A==}
+    peerDependencies:
+      react: ^18.0.0
+      react-dom: ^18.0.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      react-dom:
+        optional: true
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      tslib: 2.5.0
+    optionalDependencies:
+      '@emotion/is-prop-valid': 0.8.8
     dev: false
 
   /fresh@0.5.2:

@@ -9,11 +9,14 @@ import { fileURLToPath } from "url";
 import { StringParameter } from "aws-cdk-lib/aws-ssm";
 import type { IUserPool } from "aws-cdk-lib/aws-cognito";
 import type { Bucket } from "aws-cdk-lib/aws-s3";
+import { Effect, Policy, PolicyDocument, PolicyStatement } from "aws-cdk-lib/aws-iam";
 
 interface CognitoRestApiProps {
 	userPool: IUserPool
 	environment: string;
 	bucket: Bucket;
+	timestreamDatabaseName: string;
+	timestreamTableName: string;
 }
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,7 +43,9 @@ export class ApiConstruct extends Construct {
 			logRetention: RetentionDays.ONE_WEEK,
 			environment: {
 				NODE_ENV: props.environment,
-				FEED_BUCKET: props.bucket.bucketName
+				FEED_BUCKET: props.bucket.bucketName,
+				TIMESTREAM_DATABASE: props.timestreamDatabaseName,
+				TIMESTREAM_TABLE: props.timestreamTableName
 			},
 			bundling: {
 				minify: true,
@@ -55,7 +60,35 @@ export class ApiConstruct extends Construct {
 			architecture: Architecture.ARM_64
 		});
 
-		props.bucket.grantReadWrite(apiLambda)
+		props.bucket.grantReadWrite(apiLambda);
+
+		const timestreamQueryPolicy = new PolicyDocument({
+			statements: [
+				new PolicyStatement({
+					effect: Effect.ALLOW,
+					actions: [
+						'timestream:Select',
+						'timestream:DescribeTable',
+						'timestream:ListMeasures'
+					],
+					resources: ["*"],
+				}),
+				new PolicyStatement({
+					effect: Effect.ALLOW,
+					actions: [
+						'timestream:DescribeEndpoints',
+						'timestream:SelectValues',
+						'timestream:CancelQuery'
+					],
+					resources: ["*"],
+				}),
+			],
+		});
+
+		// Attach the policy to the Lambda function's execution role
+		apiLambda.role?.attachInlinePolicy(new Policy(this, 'TimestreamLambdaQueryPolicy', {
+			document: timestreamQueryPolicy
+		}));
 
 		const authorizer = new CognitoUserPoolsAuthorizer(this, 'Authorizer', {
 			cognitoUserPools: [props.userPool]

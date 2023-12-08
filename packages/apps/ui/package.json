@@ -36,7 +36,8 @@
 		"papaparse": "5.4.1",
 		"lodash-es": "4.17.21",
 		"@types/lodash-es": "4.17.10",
-		"percentile": "1.6.0"
+		"percentile": "1.6.0",
+		"framer-motion": "~10.16.15"
 	},
 	"devDependencies": {
 		"@types/papaparse": "~5.3.10",
