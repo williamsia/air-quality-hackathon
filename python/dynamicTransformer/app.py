@@ -14,91 +14,93 @@ from utils import timeStream
 from utils import lambdaClient
 
 # Get the Environment variables
-
 DATABASE_NAME = os.getenv('DATABASE_NAME')
 TABLE_NAME = os.getenv('TABLE_NAME')
 NOTIFICATION_FUNCTION_NAME = os.getenv('NOTIFICATION_FUNCTION_NAME')
 
+s3_client = boto3.client('s3')
+lambda_client = boto3.client('lambda')
 
-def lambda_handler(event, context):
+def transform_data(bucket, key, transformer):
+	try:
+	   	s3_client.download_file(bucket, key, local_file_name)
+		local_file_name = os.path.join('/tmp', str(uuid.uuid4()))
+        with open(local_file_name) as f:
+			data = f.readlines()
+		logger.debug("data:\n", data)
+	except (KeyError, IndexError):
+		logger.error("Missing `data` parameter(s) in event.")
+		exit
 
-    try:
-        data : str = event['data']
-        logger.debug("data:\n", data)
-    except (KeyError, IndexError):
-        logger.error("Missing `data` parameter(s) in event.")
-        exit
+	try:
+		print('before transformer_code')
+		transformer_code: str = base64.b64decode('transformer').decode()
+		transformer_code += "\ntransformed=convert(data)"
+		logger.debug("transformer_code:\n", transformer_code)
+		print("transformer_code:\n", transformer_code)
+	except (KeyError, IndexError):
+		logger.error("Missing `transformer` parameter(s) in event.")
+		exit
 
-    try:
-        print('before transformer_code')
-        transformer_code : str = base64.b64decode(event['transformer']).decode()
-        transformer_code += "\ntransformed=convert(data)"
-        logger.debug("transformer_code:\n", transformer_code)
-        print("transformer_code:\n", transformer_code)
-    except (KeyError, IndexError):
-        logger.error("Missing `transformer` parameter(s) in event.")
-        exit
+	# save the transformer class to local temp storage so we can later load it as a class
+	local_class_name = os.path.join("/tmp", str(uuid.uuid4()))
+	# local_class_name = os.path.join("/tmp/debugging")
+	with open(local_class_name, "w") as f:
+		f.write(transformer_code)
 
-    # save the transformer class to local temp storage so we can later load it as a class
-    local_class_name = os.path.join("/tmp", str(uuid.uuid4()))
-    # local_class_name = os.path.join("/tmp/debugging")
-    with open(local_class_name, "w") as f:
-        f.write(transformer_code)
+	temp_file_name = os.path.join("/tmp", "temp")
+	temp = open(temp_file_name, 'wb')
 
-    temp_file_name = os.path.join("/tmp", "temp")
-    temp= open(temp_file_name,'wb')
+	print("local_class_name:", local_class_name)
+	# dynamically execute it to convert the data
+	with open(local_class_name, mode="r", encoding="utf-8") as transformer_file:
+		for line in transformer_file:
+			if line.startswith('def convert'):
+				line = b'''
+	def convert(input: str) -> List[Measurement]
+	    from dataclasses import dataclass
+	    from datetime import datetime
+	    import csv
+	'''
+				temp.write(line)
+			else:
+				temp.write(bytes(line, 'utf-8'))
+		transformer_class = transformer_file.read()
+		print("read transformer class:\n")
+	temp.close()
+	shutil.move(temp_file_name, local_class_name)
 
-    print("local_class_name:",local_class_name)
-    # dynamically execute it to convert the data
-    with open(local_class_name, mode="r", encoding="utf-8") as transformer_file:
-        for line in transformer_file:
-            if line.startswith('def convert'):
-                line = b'''
-def convert(input: str) -> List[Measurement]
-    from dataclasses import dataclass
-    from datetime import datetime
-    import csv
-'''
-                temp.write(line)
-            else:
-                temp.write(bytes(line,'utf-8'))
-        transformer_class = transformer_file.read()
-        print("read transformer class:\n")
-    temp.close()
-    shutil.move(temp_file_name,local_class_name)
+	local = {}
+	exec(transformer_class, {"data": data}, local)
+	transformed = local['transformed']
 
-    local = {}
-    exec(transformer_class, {"data":data},local)
-    transformed = local['transformed']
+	print("transformed:", transformed)
 
-    print("transformed:",transformed)
+	# Store transformed in timeseries step 2
+	timeStreamClient = timeStream.get_timeStream_client()
+	timeStreamClient.write_records(
+		DatabaseName=DATABASE_NAME,
+		TableName=TABLE_NAME,
+		Records=event["data"],
+		CommonAttributes={
+			'MeasureValueType': 'DOUBLE',
+			'TimeUnit': 'SECONDS',
+		}
+	)
 
-    # Store transformed in timeseries step 2
-    timeStreamClient = timeStream.get_timeStream_client()
-    timeStreamClient.write_records(
-        DatabaseName=DATABASE_NAME,
-        TableName=TABLE_NAME,
-        Records=event["data"],
-        CommonAttributes={
-        'MeasureValueType': 'DOUBLE',
-        'TimeUnit': 'SECONDS',
-    }
-    )
+def lambda_handler(events, context):
+	for event in events:
+		transform_data(event["bucket"], event["key"], event["transformer"])
 
-    # Send notification to websocket
-    # lambdaClient = lambda.get_lambda_client()
-    # lambdaClient.invoke(
-    #     FunctioName=NOTIFICATION_FUNCTION_NAME,
-    #     InvocationType='RequestResponse'
-    #     Payload=b'{"status": "success","stepNumber": 2}'
-	# )
-
-    print(transformed)
+    lambdaClient = lambda.get_lambda_client()
+    lambdaClient.invoke(
+        FunctioName=NOTIFICATION_FUNCTION_NAME,
+        InvocationType='RequestResponse'
+        Payload=b'{"message": ""}'
+	)
 
 
 def lambda_handler2(event, context):
-
-
 	print(event["data"])
 	timeStreamClient = timeStream.get_timeStream_client()
 	timeStreamClient.write_records(
