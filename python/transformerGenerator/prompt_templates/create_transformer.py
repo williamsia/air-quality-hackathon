@@ -74,13 +74,10 @@ You ALWAYS follow these guidelines when writing your response:
 
 When you reply, first determine how the provided input should be mapped to the AFRI_SET_COMMON json format. Write this mapping within the <thinking></thinking> XML tags. This is a space for you to write down relevant content and will not be shown to the user.  Once you are done extracting determing the mapping steps, answer the question.  Put your answer inside the <response></response> XML tags.
 
-Question: Map the following provided within the <data></data> XML tag to the AFRI_SET_COMMON format:
-<data>
-{data}
-</data>
+Question: {question}
 
 Assistant:"""
 
 create_transformer_prompt = PromptTemplate(
-	template=template, input_variables=["context", "data"]
+	template=template, input_variables=["context", "question"]
 )

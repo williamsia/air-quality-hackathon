@@ -1,14 +1,15 @@
-import { RemovalPolicy } from "aws-cdk-lib";
-import { LogGroup } from "aws-cdk-lib/aws-logs";
-import { DefinitionBody, LogLevel, StateMachine } from "aws-cdk-lib/aws-stepfunctions";
-import { Construct } from "constructs";
+import { Duration, RemovalPolicy, Size, Stack } from 'aws-cdk-lib';
+import { DockerImageCode, DockerImageFunction, Tracing } from 'aws-cdk-lib/aws-lambda';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { BlockPublicAccess, Bucket } from 'aws-cdk-lib/aws-s3';
+import { DefinitionBody, LogLevel, StateMachine } from 'aws-cdk-lib/aws-stepfunctions';
+import { LambdaInvoke } from 'aws-cdk-lib/aws-stepfunctions-tasks';
+import { Construct } from 'constructs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
-import { DockerImageFunction, DockerImageCode  } from "aws-cdk-lib/aws-lambda";
-import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
-import { fileURLToPath } from "url";
-import path from "path";
-import { BlockPublicAccess, Bucket } from "aws-cdk-lib/aws-s3";
-import * as cdk from 'aws-cdk-lib';
+import { Policy, PolicyStatement, Role } from 'aws-cdk-lib/aws-iam/index.js';
 
 export interface StateMachineProperties {
 	environment: string;
@@ -21,40 +22,56 @@ export class FeedMapping extends Construct {
 	constructor(scope: Construct, id: string, props: StateMachineProperties) {
 		super(scope, id);
 
-		const accountId = cdk.Stack.of(this).account;
-		const region = cdk.Stack.of(this).region;
+		const accountId = Stack.of(this).account;
+		const region = Stack.of(this).region;
 		const namePrefix = `afriset-${props.environment}`;
 
 		const holdingBucket = new Bucket(this, 'afrisetScenarioHoldingBucket', {
 			bucketName: `${namePrefix}-${accountId}-${region}-afriset-holding`,
 			publicReadAccess: false,
 			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
-			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			removalPolicy: RemovalPolicy.DESTROY,
 			autoDeleteObjects: true
 		});
 
 		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
 
-		// const feedMapping = new PythonFunction(this, 'FeedMappingFunction', {
-		// 	entry: path.join(__dirname, '../../../python/feedMapping'),
-		// 	runtime: Runtime.PYTHON_3_10,
-		// 	handler: 'app.lambda_handler',
-		// });
+		const transformerGeneratorPolicy = new Policy(this, 'TransformerGeneratorPolicy', {
+			statements: [
+				new PolicyStatement({
+					sid: 'bedrock',
+					actions: ['bedrock:InvokeModel'],
+					resources: [
+						`arn:aws:bedrock:${region}::foundation-model/amazon.titan-embed-text-v1`,
+						`arn:aws:bedrock:${region}::foundation-model/anthropic.claude-v2:1`
+					],
+				})
+			]
+		});
 
-		const feedMapping = new DockerImageFunction(this, 'AssetFunction', {
-			code: DockerImageCode.fromImageAsset(path.join(__dirname, '../../../python/transformer')),
-		  });
+		const transformerGeneratorFunction = new DockerImageFunction(this, 'TransformerGeneratorFunction', {
+			code: DockerImageCode.fromImageAsset(path.join(__dirname, '../../../python/transformerGenerator')),
+			environment: {
+				'NLTK_DATA': '/tmp'
+			},
+			ephemeralStorageSize: Size.gibibytes(5),
+			memorySize: 1024,
+			tracing: Tracing.ACTIVE,
+			timeout: Duration.minutes(2),
+			logRetention: RetentionDays.ONE_WEEK,
+		});
+		transformerGeneratorFunction.role?.attachInlinePolicy(transformerGeneratorPolicy);
 
-		holdingBucket.grantReadWrite(feedMapping);
+		holdingBucket.grantReadWrite(transformerGeneratorFunction);
 
-		const feedMappingTask = new LambdaInvoke(this, 'FeedMapping', {
-			lambdaFunction: feedMapping,
+		const transformerGeneratorTask = new LambdaInvoke(this, 'TransformerGeneratorInvoke', {
+			lambdaFunction: transformerGeneratorFunction,
 			outputPath: '$.Payload'
 		});
 
 		new StateMachine(this, 'FeedMappingStateMachine', {
 			definitionBody: DefinitionBody.fromChainable(
-				feedMappingTask),
+				transformerGeneratorTask),
 			logs: {destination: feedMappingStateMachineLogGroup, level: LogLevel.ERROR, includeExecutionData: true},
 			stateMachineName: `${namePrefix}-feed-mapping`,
 			tracingEnabled: true
