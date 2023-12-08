@@ -17,6 +17,7 @@
 		"@aws-sdk/s3-request-presigner": "3.441.0",
 		"@aws-sdk/client-timestream-write": "3.441.0",
 		"@aws-sdk/client-lambda": "3.441.0",
+		"@aws-sdk/client-timestream-query": "3.441.0",
 		"@aws-sdk/util-utf8-node": "3.259.0",
 		"@fastify/awilix": "3.2.0",
 		"@fastify/aws-lambda": "3.3.0",

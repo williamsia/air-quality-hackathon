@@ -23,6 +23,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export class FeedMapping extends Construct {
+	readonly timestreamDatabaseName: string;
+	readonly timestreamTableName: string;
+
 	constructor(scope: Construct, id: string, props: StateMachineProperties) {
 		super(scope, id);
 
@@ -38,6 +41,9 @@ export class FeedMapping extends Construct {
 		})
 
 		feedTable.node.addDependency(feedDatabase);
+
+		this.timestreamDatabaseName = namePrefix;
+		this.timestreamTableName = `${namePrefix}-sensor-feeds`;
 
 		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
 
