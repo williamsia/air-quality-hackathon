@@ -68,15 +68,17 @@ export class FeedMapping extends Construct {
 			  tagOrDigest: "latest",
 			}),
 			environment: {
-				'NLTK_DATA': '/tmp'
+				NLTK_DATA: '/tmp',
+				NOTIFICATION_LAMBDA: props.sendMessageLambda.functionName,
 			},
 			ephemeralStorageSize: Size.gibibytes(5),
 			memorySize: 1024,
 			tracing: Tracing.ACTIVE,
-			timeout: Duration.minutes(2),
+			timeout: Duration.minutes(5),
 			logRetention: RetentionDays.ONE_WEEK,
 		});
 		transformerGeneratorFunction.role?.attachInlinePolicy(transformerGeneratorPolicy);
+		props.sendMessageLambda.grantInvoke(transformerGeneratorFunction);
 
 		holdingBucket.grantReadWrite(transformerGeneratorFunction);
 

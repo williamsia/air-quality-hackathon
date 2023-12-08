@@ -29,7 +29,7 @@ import uuid
 
 class MissingParametersException(Exception): pass
 
-NOTIFICATION_FUNCTION_NAME=os.environ.get("AWS_DEFAULT_REGION", None)
+NOTIFICATION_LAMBDA=os.environ.get("NOTIFICATION_LAMBDA", None)
 
 # clients
 bedrock_client = bedrock.get_bedrock_client(
@@ -43,7 +43,7 @@ lambda_client = boto3.client('lambda')
 def notify(status:str, stepNumber:int):
     # Send notification to websocket
     lambda_client.invoke (
-        FunctionName=NOTIFICATION_FUNCTION_NAME,
+        FunctionName=NOTIFICATION_LAMBDA,
         InvocationType='RequestResponse',
         Payload='{"status": "' + status + '","stepNumber":'  + str(stepNumber) + '}'
     )
