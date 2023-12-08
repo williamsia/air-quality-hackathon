@@ -27,12 +27,9 @@ from prompt_templates.transform import transform_prompt
 import boto3
 import uuid
 
-# import logging
-# LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-# logging.basicConfig(level=LOGLEVEL)
-# logger = logging.getLogger()
-
 class MissingParametersException(Exception): pass
+
+NOTIFICATION_FUNCTION_NAME=os.environ.get("AWS_DEFAULT_REGION", None)
 
 # clients
 bedrock_client = bedrock.get_bedrock_client(
@@ -41,6 +38,15 @@ bedrock_client = bedrock.get_bedrock_client(
     runtime=True
 )
 s3_client = boto3.client('s3')
+lambda_client = boto3.client('lambda')
+
+def notify(status:str, stepNumber:int):
+    # Send notification to websocket
+    lambda_client.invoke (
+        FunctionName=NOTIFICATION_FUNCTION_NAME,
+        InvocationType='RequestResponse',
+        Payload='{"status": "' + status + '","stepNumber":  + stepNumber + '}'
+    )
 
 def configure_langchain():
     llm = Bedrock(model_id="anthropic.claude-v2:1", client=bedrock_client, model_kwargs={'max_tokens_to_sample':10000})
@@ -92,6 +98,7 @@ def lambda_handler(event, context):
             print(f"Processing {bucket}/{key}.")
         except (KeyError, IndexError):
             print("ERROR: Missing S3 bucket and name in event.")
+            notify("error", 1)
             continue
 
         local_file_name = os.path.join('/tmp', str(uuid.uuid4()))
@@ -123,7 +130,9 @@ Map the following provided within the <data></data> XML tag to the AFRI_SET_COMM
             'bucket': bucket,
             'key': key,
             'transformer': base64_string
-		})
+        })
+
+    notify("success", 2)
     return responses
 
 
