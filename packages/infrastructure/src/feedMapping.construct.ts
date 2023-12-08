@@ -2,9 +2,10 @@ import { RemovalPolicy } from "aws-cdk-lib";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import { DefinitionBody, LogLevel, StateMachine } from "aws-cdk-lib/aws-stepfunctions";
 import { Construct } from "constructs";
-import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
+// import { PythonFunction } from '@aws-cdk/aws-lambda-python-alpha';
 import { DockerImageFunction, DockerImageCode  } from "aws-cdk-lib/aws-lambda";
 import { LambdaInvoke } from "aws-cdk-lib/aws-stepfunctions-tasks";
+import { CfnDatabase, CfnTable } from "aws-cdk-lib/aws-timestream";
 import { fileURLToPath } from "url";
 import path from "path";
 import { BlockPublicAccess, Bucket } from "aws-cdk-lib/aws-s3";
@@ -32,6 +33,51 @@ export class FeedMapping extends Construct {
 			removalPolicy: cdk.RemovalPolicy.DESTROY,
 			autoDeleteObjects: true
 		});
+
+		const goldenBucket = new Bucket(this, 'afrisetScenarioGoldenBucket', {
+			bucketName: `${namePrefix}-${accountId}-${region}-afriset-golden`,
+			publicReadAccess: false,
+			blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+			removalPolicy: cdk.RemovalPolicy.DESTROY,
+			autoDeleteObjects: true
+		});
+
+		const feedDatabase = new CfnDatabase(this, 'SensorDatabase', {
+			databaseName: namePrefix
+		})
+
+		const feedTable = new CfnTable(this, 'SensorFeeds', {
+			databaseName: feedDatabase.databaseName!,
+			tableName: `${namePrefix}-sensor-feeds`,
+			schema: {
+                compositePartitionKey : [
+					{
+						enforcementInRecord: 'REQUIRED',
+						name: 'id',
+						type: 'DIMENSION'
+					}
+				],
+              },
+			  magneticStoreWriteProperties:{
+				EnableMagneticStoreWrites: true,
+				MagneticStoreRejectedDataLocation:{
+					S3Configuration:{
+						BucketName: goldenBucket.bucketName,
+						EncryptionOption: 'SSE_S3',
+						ObjectKeyPrefix: 'timestream/rejections'
+					}
+				}
+			  },
+			  retentionProperties:{
+				MemoryStoreRetentionPeriodInHours: 8766,
+				MagneticStoreRetentionPeriodInDays: 1
+			  }
+
+		})
+
+		feedTable.node.addDependency(feedDatabase);
+		feedTable.node.addDependency(goldenBucket);
+
 
 		const feedMappingStateMachineLogGroup = new LogGroup(this, 'FeedMappingStateMachineLogGroup', {logGroupName: `/aws/vendedlogs/states/${namePrefix}-dataPipeline`, removalPolicy: RemovalPolicy.DESTROY});
 
